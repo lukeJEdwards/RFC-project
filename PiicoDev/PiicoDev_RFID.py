@@ -5,7 +5,7 @@
 # https://github.com/wendlers/micropython-mfrc522
 # https://github.com/mxgxw/MFRC522-python
 
-from PiicoDev_Unified import *
+from PiicoDev.PiicoDev_Unified import *
 
 compat_str = '\nUnified PiicoDev library out of date.  Get the latest module: https://piico.dev/unified \n'
 
