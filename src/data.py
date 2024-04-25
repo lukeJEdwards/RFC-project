@@ -4,25 +4,34 @@ from enum import Enum, auto
 import dill
 
 
-class ORIENTATION(Enum):
-    horizontal = auto()
-    vertical = auto()
+class orientation(Enum):
+    HORIZONTAL = auto()
+    VERTICAL = auto()
 
+class msgType(Enum):
+    INIT = auto()
+    UPADTE = auto()
+    FULL = auto()
 
 @dataclass
 class VideoInfo:
     fileName: str
     length: int
     currentTime: int
-    orientation: ORIENTATION
+    orientation: orientation
 
 
 @dataclass
 class PiInfo:
-    IP: str
     hostName: str
     currentlyPlaying: bool
     videoInfo: VideoInfo
+
+@dataclass
+class socketMsg:
+    IP: str
+    msgType: msgType
+    mgs: PiInfo | VideoInfo
 
     def serialise(self):
         return dill.dumps(self)

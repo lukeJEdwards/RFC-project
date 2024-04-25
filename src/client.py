@@ -27,8 +27,10 @@ client_socket = socket.socket()
 
 
 def send(msg: bytes) -> None:
-    msg_header = f"{len(msg):<{HEADER_LENGTH}}".encode(FORMAT)
-    client_socket.send(msg_header + msg)
+    while(True):
+        message = str(input("Enter message: ")).encode(FORMAT)
+        msg_header = f"{len(msg):<{HEADER_LENGTH}}".encode(FORMAT)
+        client_socket.send(msg_header + message)
 
 
 def receive() -> None:
