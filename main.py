@@ -1,81 +1,36 @@
-from typing import Any
-from dotenv import dotenv_values
-
-from models import statusResponse, video
+# from PiicoDev_RFID import PiicoDev_RFID
+# from PiicoDev_Unified import sleep_ms
 
 import json
-import httpx
+import time
 
-CONFIG = dotenv_values(".env")
-BASE_URL = f"http://:{CONFIG["PASSWORD"]}@127.0.0.1:8080/requests"
+from raspberry_pi import RaspberryPi
 
+IPS = ["192.168.1.149", "192.168.1.205"]
 RFID_ID = json.load(open("rfids.json", encoding='utf-8'))
 
-playlist = {}
-status = statusResponse()
+PIS: list[RaspberryPi] = [RaspberryPi(ip, host_password="admin", init_playlist=False) for ip in IPS]
+# RFID_READERS = [PiicoDev_RFID(asw=[0, 0]), PiicoDev_RFID(asw=[0, 1]), PiicoDev_RFID(asw=[1, 0]), PiicoDev_RFID(asw=[1, 1])]
 
 
-def update_status(response: dict[str, any]) -> None:
-    for key in status.__dict__.keys():
-        setattr(status, key, response[key])
+def check_video_completion() -> None:
+    for pi in PIS:
+        pi.update_status()
+        if pi.status.time == pi.status.length:
+                pi.stop()
+                
+def play(rfid: str):
+    for pi in PIS:
+        pi.play(RFID_ID, rfid)
 
-
-def get_playlist() -> dict[str, video]:
-    pl: dict[str, video] = {}
-    
-    response = httpx.get(f'{BASE_URL}/playlist.json').json()
-    
-    for v in response["children"][0]["children"]:
-        new_video = video(name=v["name"], id=v["id"], duration=v["duration"])
-        rfid = RFID_ID[new_video.name]
-        pl[rfid] = new_video
-        
-    return pl
-
-def get_status() -> statusResponse:
-    response: dict[str, Any] = httpx.get(f'{BASE_URL}/status.json').json()
-    return update_status(response)
-
-def play_video(id:str) -> statusResponse:
-    response = httpx.get(f'{BASE_URL}/status.json?command=pl_play&id={id}')
-    return update_status(response.json())
-
-def stop_video() -> statusResponse:
-    response = httpx.get(f'{BASE_URL}/status.json?command=pl_stop')
-    return update_status(response.json())
     
 def main():
-    playlist = get_playlist()
-    status = get_status()
-    
+    play("r3")
     while True:
-        pass
-        
+        check_video_completion()
+        time.sleep(1)
     
+        
     
 if __name__ =="__main__":
     main()
-
-
-'''
-video stats
-/status.json
-
-playlist stats
-/playlist.json
-
-empty playlist
-?command=pl_empty
-
-loop video
-?command=pl_loop
-
-fullscreen
-?command=fullscreen
-
-play video
-?command=pl_play&id=<id>
-
-netstat -aon | findstr 8080
-taskkill /f /pid 1234
-'''
