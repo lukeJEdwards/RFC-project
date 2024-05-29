@@ -1,17 +1,19 @@
-# from PiicoDev_RFID import PiicoDev_RFID
-# from PiicoDev_Unified import sleep_ms
+import RPi.GPIO as GPIO
+from mfrc522 import SimpleMFRC522
 
 import json
 import time
 
 from raspberry_pi import RaspberryPi
 
-IPS = ["192.168.1.149", "192.168.1.205"]
+IPS = []
 RFID_ID = json.load(open("rfids.json", encoding='utf-8'))
 
 PIS: list[RaspberryPi] = [RaspberryPi(ip, host_password="admin", init_playlist=False) for ip in IPS]
-# RFID_READERS = [PiicoDev_RFID(asw=[0, 0]), PiicoDev_RFID(asw=[0, 1]), PiicoDev_RFID(asw=[1, 0]), PiicoDev_RFID(asw=[1, 1])]
 
+
+READER = SimpleMFRC522()
+is_playing = False
 
 def check_video_completion() -> None:
     for pi in PIS:
@@ -25,9 +27,17 @@ def play(rfid: str):
 
     
 def main():
-    play("r3")
     while True:
-        check_video_completion()
+        try:
+            id, text = READER.read()
+            play(id)
+            is_playing = True
+        finally:
+            GPIO.cleanup()
+        
+        if is_playing:
+            check_video_completion()
+            
         time.sleep(1)
     
         
