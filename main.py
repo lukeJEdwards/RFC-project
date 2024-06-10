@@ -1,12 +1,14 @@
 import RPi.GPIO as GPIO
 from mfrc522 import SimpleMFRC522
+import click
+
 
 import json
 import time
 
 from raspberry_pi import RaspberryPi
 
-IPS = []
+IPS = ["localhost"]
 RFID_ID = json.load(open("rfids.json", encoding='utf-8'))
 
 PIS: list[RaspberryPi] = [RaspberryPi(ip, host_password="admin", init_playlist=False) for ip in IPS]
@@ -34,6 +36,7 @@ def main():
             is_playing = True
         finally:
             GPIO.cleanup()
+        
         
         if is_playing:
             check_video_completion()
